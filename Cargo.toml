@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = [ "snake", "flames" ]
+
+[profile.release]
+opt-level = "s"
+lto = true
+panic = "abort"
+debug = true
+codegen-units = 1
