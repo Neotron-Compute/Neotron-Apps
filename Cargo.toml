@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = [ "snake", "flames" ]
+members = [ "snake", "flames" , "neoplay" ]
 
 [profile.release]
 opt-level = "s"

@@ -55,7 +55,7 @@ dependencies = [
 name = "flames"
 version = "0.1.0"
 dependencies = [
- "neotron-sdk",
+ "neotron-sdk 0.1.0 (git+https://github.com/neotron-compute/neotron-sdk.git)",
 ]
 
 [[package]]
@@ -93,10 +93,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "neoplay"
+version = "0.1.0"
+dependencies = [
+ "neotracker",
+ "neotron-sdk 0.1.0 (git+https://github.com/neotron-compute/neotron-sdk.git?branch=file-demo)",
+]
+
+[[package]]
+name = "neotracker"
+version = "0.1.0"
+source = "git+https://github.com/thejpster/neotracker.git#2e49de8343ad7f1da6b088e2492c3296f35c0497"
+
+[[package]]
 name = "neotron-api"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "82c00f842e7006421002e67a53866b90ddd6f7d86137b52d2147f5e38b35e82f"
+dependencies = [
+ "bitflags 2.4.0",
+ "neotron-ffi",
+]
+
+[[package]]
+name = "neotron-api"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67d6c96706b6f3ec069abfb042cadfd2d701980fa4940f407c0bc28ee1e1c493"
 dependencies = [
  "bitflags 2.4.0",
  "neotron-ffi",
@@ -111,10 +134,20 @@ checksum = "d37886e73d87732421aaf5da617eead9d69a7daf6b0d059780f76157d9ce5372"
 [[package]]
 name = "neotron-sdk"
 version = "0.1.0"
+source = "git+https://github.com/neotron-compute/neotron-sdk.git?branch=file-demo#6252024ef064de8f997c9e46da44b08c126fd8b1"
+dependencies = [
+ "crossterm",
+ "neotron-api 0.2.0",
+ "neotron-ffi",
+]
+
+[[package]]
+name = "neotron-sdk"
+version = "0.1.0"
 source = "git+https://github.com/neotron-compute/neotron-sdk.git#926ce2da5b6e86d17e1fb4236715fc7cecbacba2"
 dependencies = [
  "crossterm",
- "neotron-api",
+ "neotron-api 0.1.0",
  "neotron-ffi",
 ]
 
@@ -196,7 +229,7 @@ checksum = "942b4a808e05215192e39f4ab80813e599068285906cc91aa64f923db842bd5a"
 name = "snake"
 version = "0.1.0"
 dependencies = [
- "neotron-sdk",
+ "neotron-sdk 0.1.0 (git+https://github.com/neotron-compute/neotron-sdk.git)",
 ]
 
 [[package]]
