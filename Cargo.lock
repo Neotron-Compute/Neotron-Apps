@@ -97,13 +97,13 @@ name = "neoplay"
 version = "0.1.0"
 dependencies = [
  "neotracker",
- "neotron-sdk 0.1.0 (git+https://github.com/neotron-compute/neotron-sdk.git?branch=file-demo)",
+ "neotron-sdk 0.1.0 (git+https://github.com/neotron-compute/neotron-sdk.git?rev=9a9486e85e759fe1af263190b9f4390e4307a2de)",
 ]
 
 [[package]]
 name = "neotracker"
 version = "0.1.0"
-source = "git+https://github.com/thejpster/neotracker.git?branch=playback-fixes#3b6256cc8a1e530fa59e66f7b8e2a2b03ecc6fcd"
+source = "git+https://github.com/thejpster/neotracker.git?rev=2ee7a85006a9461b876bdf47e45b6105437a38f6#2ee7a85006a9461b876bdf47e45b6105437a38f6"
 
 [[package]]
 name = "neotron-api"
@@ -124,7 +124,7 @@ checksum = "d37886e73d87732421aaf5da617eead9d69a7daf6b0d059780f76157d9ce5372"
 [[package]]
 name = "neotron-sdk"
 version = "0.1.0"
-source = "git+https://github.com/neotron-compute/neotron-sdk.git?branch=file-demo#6252024ef064de8f997c9e46da44b08c126fd8b1"
+source = "git+https://github.com/neotron-compute/neotron-sdk.git?rev=9a9486e85e759fe1af263190b9f4390e4307a2de#9a9486e85e759fe1af263190b9f4390e4307a2de"
 dependencies = [
  "crossterm",
  "neotron-api",
