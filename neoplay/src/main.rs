@@ -3,7 +3,7 @@
 
 use core::fmt::Write;
 
-static mut FILE_BUFFER: [u8; 128 * 1024] = [0u8; 128 * 1024];
+static mut FILE_BUFFER: [u8; 192 * 1024] = [0u8; 192 * 1024];
 
 mod player;
 
@@ -43,7 +43,7 @@ fn real_main() -> Result<(), neotron_sdk::Error> {
         return neotron_sdk::Result::Err(neotron_sdk::Error::DeviceSpecific);
     }
 
-    let mut player = match player::Player::new(file_buffer, 11025) {
+    let mut player = match player::Player::new(file_buffer, 44100) {
         Ok(player) => player,
         Err(e) => {
             let _ = writeln!(stdout, "Failed to create player: {:?}", e);
@@ -59,27 +59,14 @@ fn real_main() -> Result<(), neotron_sdk::Error> {
     }
 
     loop {
-        for chunk in sample_buffer.chunks_exact_mut(16) {
+        for chunk in sample_buffer.chunks_exact_mut(4) {
             let (left, right) = player.next_sample(&mut stdout);
             let left_bytes = left.to_le_bytes();
             let right_bytes = right.to_le_bytes();
-            // copy samples four times
             chunk[0] = left_bytes[0];
             chunk[1] = left_bytes[1];
             chunk[2] = right_bytes[0];
             chunk[3] = right_bytes[1];
-            chunk[4] = left_bytes[0];
-            chunk[5] = left_bytes[1];
-            chunk[6] = right_bytes[0];
-            chunk[7] = right_bytes[1];
-            chunk[8] = left_bytes[0];
-            chunk[9] = left_bytes[1];
-            chunk[10] = right_bytes[0];
-            chunk[11] = right_bytes[1];
-            chunk[12] = left_bytes[0];
-            chunk[13] = left_bytes[1];
-            chunk[14] = right_bytes[0];
-            chunk[15] = right_bytes[1];
         }
         let _ = dsp.write(&sample_buffer);
         let mut in_buf = [0u8; 1];
