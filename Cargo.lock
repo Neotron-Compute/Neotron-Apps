@@ -103,7 +103,7 @@ dependencies = [
 [[package]]
 name = "neotracker"
 version = "0.1.0"
-source = "git+https://github.com/thejpster/neotracker.git#2e49de8343ad7f1da6b088e2492c3296f35c0497"
+source = "git+https://github.com/thejpster/neotracker.git?branch=playback-fixes#3b6256cc8a1e530fa59e66f7b8e2a2b03ecc6fcd"
 
 [[package]]
 name = "neotron-api"

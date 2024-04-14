@@ -7,7 +7,7 @@ authors = ["Jonathan 'theJPster' Pallant <neotron@thejpster.org.uk>"]
 description = "4-channel ProTracker player for Neotro"
 
 [dependencies]
-neotracker = { git = "https://github.com/thejpster/neotracker.git", version = "0.1.0" }
+neotracker = { git = "https://github.com/thejpster/neotracker.git", branch = "playback-fixes" }
 neotron-sdk = { git = "https://github.com/neotron-compute/neotron-sdk.git", branch = "file-demo", features = ["fancy-panic"] }
 
 # See workspace for profile settings

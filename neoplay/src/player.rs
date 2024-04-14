@@ -6,7 +6,6 @@ struct Channel {
     volume: u8,
     note_period: u16,
     sample_position: neotracker::Fractional,
-    first_pass: bool,
     effect: Option<neotracker::Effect>,
 }
 
@@ -23,6 +22,9 @@ pub struct Player<'a> {
     position: u8,
     line: u8,
     finished: bool,
+    /// This is set when we get a Pattern Break (0xDxx) effect. It causes
+    /// us to jump to a specific row in the next pattern.
+    pattern_break: Option<u8>,
     channels: [Channel; 4],
 }
 
@@ -46,6 +48,7 @@ impl<'a> Player<'a> {
             clock_ticks_per_device_sample: neotracker::Fractional::new_from_sample_rate(
                 sample_rate,
             ),
+            pattern_break: None,
             channels: [
                 Channel::default(),
                 Channel::default(),
@@ -61,7 +64,17 @@ impl<'a> Player<'a> {
         T: core::fmt::Write,
     {
         if self.ticks_left == 0 && self.samples_left == 0 {
-            // yes it is time for a new line
+            // It is time for a new line
+
+            // Did we have a pattern break? Jump straight there.
+            if let Some(line) = self.pattern_break {
+                self.pattern_break = None;
+                self.position += 1;
+                self.line = line;
+            }
+
+            // Find which line we play next. It might be the next line in this
+            // pattern, or it might be the first line in the next pattern.
             let line = loop {
                 // Work out which pattern we're playing
                 let Some(pattern_idx) = self.modfile.song_position(self.position) else {
@@ -77,66 +90,70 @@ impl<'a> Player<'a> {
                     self.position += 1;
                     continue;
                 };
+                // There was no need to go the next pattern, so produce this
+                // line from the loop.
                 break line;
             };
 
             // Load four channels with new line data
-            let _ = write!(out, "{:03} {:06} ", self.position, self.line);
+            let _ = write!(out, "{:03} {:06}: ", self.position, self.line);
             for (channel_num, ch) in self.channels.iter_mut().enumerate() {
                 let note = &line.channel[channel_num];
+                // Do we have a new sample to play?
                 if note.is_empty() {
-                    let _ = write!(out, "-- ---- ----|");
+                    let _ = write!(out, "--- -----|");
                 } else {
-                    // 0 means carry on previous note
-                    let sample = self.modfile.sample_info(note.sample_no());
-                    if let Some(sample) = sample {
-                        ch.note_period = note.period();
+                    if let Some(sample) = self.modfile.sample_info(note.sample_no()) {
                         if note.period() != 0 {
-                            ch.volume = sample.volume();
-                            ch.sample_num = note.sample_no();
-                            ch.sample_position = neotracker::Fractional::default();
-                            ch.first_pass = true;
+                            ch.note_period = note.period();
                         }
+                        ch.volume = sample.volume();
+                        ch.sample_num = note.sample_no();
+                        ch.sample_position = neotracker::Fractional::default();
                     }
                     let _ = write!(
                         out,
-                        "{:02} {:04x} {:04x}|",
-                        note.sample_no(),
+                        "{:3x} {:02}{:03x}|",
                         note.period(),
+                        note.sample_no(),
                         note.effect_u16()
                     );
-                    ch.effect = None;
-                    match note.effect() {
-                        e @ Some(
-                            neotracker::Effect::Arpeggio(_)
-                            | neotracker::Effect::SlideUp(_)
-                            | neotracker::Effect::SlideDown(_)
-                            | neotracker::Effect::VolumeSlide(_),
-                        ) => {
-                            // we'll need this for later
-                            ch.effect = e;
+                }
+                ch.effect = None;
+                match note.effect() {
+                    e @ Some(
+                        neotracker::Effect::Arpeggio(_)
+                        | neotracker::Effect::SlideUp(_)
+                        | neotracker::Effect::SlideDown(_)
+                        | neotracker::Effect::VolumeSlide(_),
+                    ) => {
+                        // we'll need this for later
+                        ch.effect = e;
+                    }
+                    Some(neotracker::Effect::SetVolume(value)) => {
+                        ch.volume = value;
+                    }
+                    Some(neotracker::Effect::SetSpeed(value)) => {
+                        if value <= 31 {
+                            self.ticks_per_line = u32::from(value);
+                            self.third_ticks_per_line = u32::from(value / 3);
+                        } else {
+                            // They are trying to set speed in beats per minute
                         }
-                        Some(neotracker::Effect::SetVolume(value)) => {
-                            ch.volume = value;
-                        }
-                        Some(neotracker::Effect::SetSpeed(value)) => {
-                            if value <= 31 {
-                                self.ticks_per_line = u32::from(value);
-                                self.third_ticks_per_line = u32::from(value / 3);
-                            } else {
-                                // They are trying to set speed in beats per minute
-                            }
-                        }
-                        Some(neotracker::Effect::SampleOffset(n)) => {
-                            let offset = u32::from(n) * 256;
-                            ch.sample_position = neotracker::Fractional::new(offset);
-                        }
-                        Some(e) => {
-                            // eprintln!("Unhandled effect {:02x?}", e);
-                        }
-                        None => {
-                            // Do nothing
-                        }
+                    }
+                    Some(neotracker::Effect::SampleOffset(n)) => {
+                        let offset = u32::from(n) * 256;
+                        ch.sample_position = neotracker::Fractional::new(offset);
+                    }
+                    Some(neotracker::Effect::PatternBreak(row)) => {
+                        // Start the next pattern early, at the given row
+                        self.pattern_break = Some(row);
+                    }
+                    Some(_e) => {
+                        // eprintln!("Unhandled effect {:02x?}", e);
+                    }
+                    None => {
+                        // Do nothing
                     }
                 }
             }
@@ -179,12 +196,9 @@ impl<'a> Player<'a> {
                         ch.note_period += u16::from(n);
                     }
                     Some(neotracker::Effect::VolumeSlide(n)) => {
-                        let xxxx = n >> 4;
-                        let yyyy = n & 0x0F;
-                        if xxxx != 0 {
-                            ch.volume = (ch.volume + xxxx).min(63);
-                        } else if yyyy != 0 {
-                            ch.volume = ch.volume.saturating_sub(yyyy);
+                        let new_volume = (ch.volume as i8) + n;
+                        if (0..=63).contains(&new_volume) {
+                            ch.volume = new_volume as u8;
                         }
                     }
                     _ => {
@@ -201,35 +215,36 @@ impl<'a> Player<'a> {
         let mut left_sample = 0;
         let mut right_sample = 0;
         for (ch_idx, ch) in self.channels.iter_mut().enumerate() {
-            if ch.note_period == 0 {
+            if ch.sample_num == 0 || ch.note_period == 0 {
                 continue;
             }
             let current_sample = self.modfile.sample(ch.sample_num).expect("bad sample");
             let sample_data = current_sample.raw_sample_bytes();
-            if sample_data.len() == 0 {
+            if sample_data.is_empty() {
                 continue;
             }
             let integer_pos = ch.sample_position.as_index();
-            let sample_byte = sample_data[integer_pos];
-            let mut channel_value = sample_byte as i8 as i32;
-            // max channel vol (64), sample range [ -128,127] scaled to [-32768, 32767]
+            let sample_byte = sample_data.get(integer_pos).cloned().unwrap_or_default();
+            let mut channel_value = (sample_byte as i8) as i32;
+            // max channel vol (64), sample range [-128,127] scaled to [-32768, 32767]
             channel_value *= 256;
             channel_value *= i32::from(ch.volume);
             channel_value /= 64;
+            // move the sample index by a non-integer amount
             ch.sample_position += self
                 .clock_ticks_per_device_sample
                 .apply_period(ch.note_period);
-
-            let new_integer_pos = ch.sample_position.as_index();
-            let limit = if ch.first_pass {
-                current_sample.sample_length_bytes()
-            } else {
-                current_sample.repeat_length_bytes()
-            };
-            if new_integer_pos >= limit {
-                ch.sample_position =
-                    neotracker::Fractional::new(current_sample.repeat_point_bytes() as u32);
-                ch.first_pass = false;
+            // loop sample if required
+            if current_sample.loops() {
+                if ch.sample_position.as_index()
+                    >= (current_sample.repeat_point_bytes() + current_sample.repeat_length_bytes())
+                {
+                    ch.sample_position =
+                        neotracker::Fractional::new(current_sample.repeat_point_bytes() as u32);
+                }
+            } else if ch.sample_position.as_index() >= current_sample.sample_length_bytes() {
+                // stop playing sample
+                ch.note_period = 0;
             }
 
             if ch_idx == 0 || ch_idx == 3 {
@@ -238,6 +253,7 @@ impl<'a> Player<'a> {
                 right_sample += channel_value;
             }
         }
+
         (
             left_sample.clamp(-32768, 32767) as i16,
             right_sample.clamp(-32768, 32767) as i16,
