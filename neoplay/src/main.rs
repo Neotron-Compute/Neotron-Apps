@@ -70,7 +70,7 @@ fn real_main() -> Result<(), neotron_sdk::Error> {
         }
         let _ = dsp.write(&sample_buffer);
         let mut in_buf = [0u8; 1];
-        if stdin.read(&mut in_buf).is_ok() && in_buf[0] == b'q' {
+        if player.finished() || stdin.read(&mut in_buf).is_ok() && in_buf[0] == b'q' {
             break;
         }
     }

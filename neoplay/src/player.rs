@@ -277,4 +277,8 @@ impl<'a> Player<'a> {
             right_sample.clamp(-32768, 32767) as i16,
         )
     }
+
+    pub fn finished(&self) -> bool {
+        self.finished
+    }
 }
