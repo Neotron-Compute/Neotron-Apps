@@ -1,6 +1,9 @@
 [workspace]
 resolver = "2"
-members = [ "snake", "flames" ]
+members = [ "snake", "flames" , "neoplay" ]
+
+[workspace.dependencies]
+neotron-sdk = "0.2"
 
 [profile.release]
 opt-level = "s"
