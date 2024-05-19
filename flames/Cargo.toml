@@ -7,6 +7,6 @@ authors = ["Jonathan 'theJPster' Pallant <neotron@thejpster.org.uk>"]
 description = "ANSI Flames for Neotron systems"
 
 [dependencies]
-neotron-sdk = { git = "https://github.com/neotron-compute/neotron-sdk.git" }
+neotron-sdk = { workspace = true }
 
 # See workspace for profile settings

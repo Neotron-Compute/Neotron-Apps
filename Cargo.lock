@@ -27,6 +27,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "critical-section"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7059fff8937831a9ae6f0fe4d658ffabf58f2ca96aa9dec1c889f936f705f216"
+
+[[package]]
 name = "crossterm"
 version = "0.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -55,7 +61,16 @@ dependencies = [
 name = "flames"
 version = "0.1.0"
 dependencies = [
- "neotron-sdk 0.1.0 (git+https://github.com/neotron-compute/neotron-sdk.git)",
+ "neotron-sdk",
+]
+
+[[package]]
+name = "grounded"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "917d82402c7eb9755fdd87d52117701dae9e413a6abb309fac2a13af693b6080"
+dependencies = [
+ "portable-atomic",
 ]
 
 [[package]]
@@ -96,8 +111,9 @@ dependencies = [
 name = "neoplay"
 version = "0.1.0"
 dependencies = [
+ "grounded",
  "neotracker",
- "neotron-sdk 0.1.0 (git+https://github.com/neotron-compute/neotron-sdk.git?rev=9a9486e85e759fe1af263190b9f4390e4307a2de)",
+ "neotron-sdk",
 ]
 
 [[package]]
@@ -123,18 +139,9 @@ checksum = "d37886e73d87732421aaf5da617eead9d69a7daf6b0d059780f76157d9ce5372"
 
 [[package]]
 name = "neotron-sdk"
-version = "0.1.0"
-source = "git+https://github.com/neotron-compute/neotron-sdk.git?rev=9a9486e85e759fe1af263190b9f4390e4307a2de#9a9486e85e759fe1af263190b9f4390e4307a2de"
-dependencies = [
- "crossterm",
- "neotron-api",
- "neotron-ffi",
-]
-
-[[package]]
-name = "neotron-sdk"
-version = "0.1.0"
-source = "git+https://github.com/neotron-compute/neotron-sdk.git#9a9486e85e759fe1af263190b9f4390e4307a2de"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2043d6202942b6ebecbf02c95a0d1498bade2ffb287355af02fee6a5ab5de331"
 dependencies = [
  "crossterm",
  "neotron-api",
@@ -162,6 +169,15 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "windows-targets",
+]
+
+[[package]]
+name = "portable-atomic"
+version = "1.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7170ef9988bc169ba16dd36a7fa041e5c4cbeb6a35b76d4c03daded371eae7c0"
+dependencies = [
+ "critical-section",
 ]
 
 [[package]]
@@ -219,7 +235,7 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 name = "snake"
 version = "0.1.0"
 dependencies = [
- "neotron-sdk 0.1.0 (git+https://github.com/neotron-compute/neotron-sdk.git)",
+ "neotron-sdk",
 ]
 
 [[package]]
