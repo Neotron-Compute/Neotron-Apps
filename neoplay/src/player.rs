@@ -63,6 +63,11 @@ impl<'a> Player<'a> {
         })
     }
 
+    /// Are we finished playing?
+    pub fn is_finished(&self) -> bool {
+        self.finished
+    }
+
     /// Return a stereo sample pair
     pub fn next_sample<T>(&mut self, out: &mut T) -> (i16, i16)
     where
