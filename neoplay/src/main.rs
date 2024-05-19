@@ -1,9 +1,10 @@
 #![cfg_attr(target_os = "none", no_std)]
 #![cfg_attr(target_os = "none", no_main)]
 
-use core::fmt::Write;
+use core::{fmt::Write, ptr::addr_of_mut};
 
-static mut FILE_BUFFER: [u8; 192 * 1024] = [0u8; 192 * 1024];
+const FILE_BUFFER_LEN: usize = 192 * 1024;
+static mut FILE_BUFFER: [u8; FILE_BUFFER_LEN] = [0u8; FILE_BUFFER_LEN];
 
 mod player;
 
@@ -32,8 +33,11 @@ fn real_main() -> Result<(), neotron_sdk::Error> {
     let _ = writeln!(stdout, "Loading {:?}...", filename);
     let path = neotron_sdk::path::Path::new(&filename)?;
     let f = neotron_sdk::File::open(path, neotron_sdk::Flags::empty())?;
-    let n = f.read(unsafe { &mut FILE_BUFFER })?;
-    let file_buffer = unsafe { &mut FILE_BUFFER[0..n] };
+    let file_buffer = unsafe {
+        let file_buffer = &mut *addr_of_mut!(FILE_BUFFER);
+        let n = f.read(file_buffer)?;
+        &file_buffer[0..n]
+    };
     drop(f);
     // Set 16-bit stereo, 44.1 kHz
     let dsp_path = neotron_sdk::path::Path::new("AUDIO:")?;
